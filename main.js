@@ -3,6 +3,8 @@ const electron = require('electron')
 const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
+// Module to access shorcuts
+const globalShortcut = electron.globalShortcut
 
 const path = require('path')
 const url = require('url')
@@ -34,6 +36,10 @@ function createWindow () {
   })
 
   mainWindow.maximize()
+
+  // Disable refresh
+  globalShortcut.register('CommandOrControl+R', () => {});
+
 }
 
 // This method will be called when Electron has finished

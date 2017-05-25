@@ -37,22 +37,93 @@
 
 
 
+
+
+
+
+
+
+// import React from 'react';
+// import {render} from 'react-dom';
+// import configureStore from './store/configureStore';  
+// import { Provider } from 'react-redux'; 
+// import Events from './components/Events'
+// import {loadEvents} from './actions/eventActions';
+
+// const store = configureStore();
+// store.dispatch(loadEvents());
+
+// render(
+// 	<Provider store={store}>
+// 		<Events/>
+// 	</Provider>,
+// 	document.getElementById('app')
+// );
+
+const persist = function(){
+	var db = require('electron').remote.getGlobal('db');
+	db.events.insert(store.getState(), function (err, newEvents) {
+		console.log('db updated');
+		if (err) {
+			console.log(err);
+		}
+	});
+}
+
+import eventReducer from './reducers/eventReducer';
+import { createStore } from 'redux';
+const store = createStore(eventReducer);
+
 import React from 'react';
-import {render} from 'react-dom';
-import configureStore from './store/configureStore';  
-import { Provider } from 'react-redux'; 
-import Events from './components/Events'
-import {loadEvents} from './actions/eventActions';
+import ReactDom from 'react-dom';
 
-const store = configureStore();
-store.dispatch(loadEvents());
+function EventList(props) {
+	if (props.events.length === 0) {
+		return <p>Loading....</p>;
+	}
+	return  <ul>
+				{
+					props.events.map( (e)=>
+						<li key={e.id}>
+							{e.date} <br/>
+							{e.name}
+						</li>
+					)
+				}
+			</ul>;
+}
 
-render(
-	<Provider store={store}>
-		<Events/>
-	</Provider>,
-	document.getElementById('app')
-);
+var render = () => {
+	ReactDom.render(
+		<div>
+			<EventList events={store.getState()} />
+			<button onClick={ () => { store.dispatch({ type : 'ADD_GENERIC_EVENT' }) } }>Ajouter un event générique</button>
+			<button onClick={ persist }>Enregistrer</button>
+		</div>,
+		document.getElementById('app')
+	);
+}
+store.subscribe(render);
+render();
+
+
+var loadEvents = () => {
+	var db = require('electron').remote.getGlobal('db');
+	db.events.find({}, (err, events) => {
+		if (err) {
+			console.log(err);
+			return false;
+		}
+
+		store.dispatch({ type : 'EVENTS_LOAD_SUCCESS', events : events });
+		return true;
+	});
+}
+
+loadEvents();
+
+
+
 
 // var db = require('electron').remote.getGlobal('db');
 // var event = {
